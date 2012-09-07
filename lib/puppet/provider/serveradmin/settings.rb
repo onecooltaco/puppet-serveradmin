@@ -1,19 +1,24 @@
 Puppet::Type.type(:serveradmin).provide(:settings) do
-
+require 'timeout'
     @doc = "apply serveradmin settings for os x server"
 	defaultfor :operatingsystem => :darwin
 	commands :serveradmin => "/usr/sbin/serveradmin"
 
 	def check
 		pairs = ""
-		IO.popen("/usr/sbin/serveradmin settings 2>/dev/null", "w+") do |pipe|
-			debug("retrieve: reading info for #{resource[:name]}")
-			pipe.puts "\"#{resource[:name]}\""
-			pipe.close_write
-			pipe.read.split("\n").each do |line|
-				debug("retrieve: line: #{line}")
-				pairs << "#{line}\n"
+		begin
+			Timeout.timeout(30) do
+				@pipe = IO.popen("/usr/sbin/serveradmin settings 2>/dev/null", "w+")
+				debug("retrieve: reading info for #{resource[:name]}")
+				@pipe.puts "\"#{resource[:name]}\""
+				@pipe.close_write
+				@pipe.read.split("\n").each do |line|
+					debug("retrieve: line: #{line}")
+					pairs << "#{line}\n"
+				end
 			end
+		rescue Timeout::Error
+			Process.kill 9, @pipe.pid
 		end
 		debug("retrieve: Analyzing returned results: #{pairs}")
 		debug("retrieve: found #{pairs.count('=')} lines of info")
@@ -86,14 +91,19 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		commandOutput = ""
 		command = "/usr/sbin/serveradmin settings"
 		debug("Executing " + command)
-		IO.popen(command, "w+") do |pipe|
-			values.each do |val|
-				pipe.puts val
+		begin
+			Timeout.timeout(30) do
+				@pipe = IO.popen(command, "w+")
+				values.each do |val|
+					@pipe.puts val
+				end
+				@pipe.close_write
+				@pipe.read.split("\n").each do |line|
+					commandOutput << "#{line}\n"
+				end
 			end
-			pipe.close_write
-			pipe.read.split("\n").each do |line|
-				commandOutput << "#{line}\n"
-			end
+		rescue Timeout::Error
+			Process.kill 9, @pipe.pid
 		end
 		return commandOutput
 	end
