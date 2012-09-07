@@ -35,9 +35,6 @@
 #
 class serveradmin::web {
 	serveradmin {
-		"web:Modules:_array_id:userdir_module:enabled": settings => "no",
-	}
-	serveradmin {
 		"web:LogLevel": settings => '"error"',
 	}
 	serveradmin {
