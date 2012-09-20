@@ -9,7 +9,7 @@ require 'timeout'
 		pairs = ""
 
 		IO.popen(command, 'r+') do |pipe|
-			pipe.puts("\"#{resource[:name]}\"")
+			pipe.puts(resource[:name])
 			pipe.close_write
 			pipe.read.split("\n").each do |l|
 				pairs << "#{l}\n"
