@@ -12,7 +12,7 @@ require 'timeout'
 			subprocess.write("\"#{resource[:name]}\"")
 			subprocess.close_write
 			subprocess.read.split("\n").each do |l|
-				pairs << "#{line}\n"
+				pairs << "#{l}\n"
 			end
 			puts
 		end
