@@ -5,22 +5,18 @@ require 'timeout'
 	commands :serveradmin => "/usr/sbin/serveradmin"
 
 	def check
+		command = "/usr/sbin/serveradmin settings 2>/dev/null"
 		pairs = ""
-		begin
-			Timeout.timeout(30) do
-				@pipe = IO.popen("/usr/sbin/serveradmin settings 2>/dev/null", "w+")
-				debug("retrieve: reading info for #{resource[:name]}")
-				@pipe.puts "\"#{resource[:name]}\""
-				@pipe.close_write
-				@pipe.read.split("\n").each do |line|
-					debug("retrieve: line: #{line}")
-					pairs << "#{line}\n"
-				end
-				@pipe.close
+
+		open(command, 'w+') do |subprocess|
+			subprocess.write("\"#{resource[:name]}\"")
+			subprocess.close_write
+			subprocess.read.split("\n").each do |l|
+				pairs << "#{line}\n"
 			end
-		rescue Timeout::Error
-			Process.kill 9, @pipe.pid
+			puts
 		end
+
 		debug("retrieve: Analyzing returned results: #{pairs}")
 		debug("retrieve: found #{pairs.count('=')} lines of info")
 		if pairs.count('=') < 2
@@ -91,22 +87,18 @@ require 'timeout'
 	def set_value( values )
 		commandOutput = ""
 		command = "/usr/sbin/serveradmin settings"
-		debug("Executing " + command)
-		begin
-			Timeout.timeout(30) do
-				@pipe = IO.popen(command, "w+")
-				values.each do |val|
-					@pipe.puts val
-				end
-				@pipe.close_write
-				@pipe.read.split("\n").each do |line|
-					commandOutput << "#{line}\n"
-				end
-				@pipe.close
+
+		open(command, 'w+') do |subprocess|
+			values.each do |val|
+				subprocess.write(val)
 			end
-		rescue Timeout::Error
-			Process.kill 9, @pipe.pid
+			subprocess.close_write
+			subprocess.read.split("\n").each do |l|
+				commandOutput << "#{l}\n"
+			end
+			puts
 		end
+
 		return commandOutput
 	end
 
