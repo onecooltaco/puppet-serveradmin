@@ -16,6 +16,7 @@ require 'timeout'
 					debug("retrieve: line: #{line}")
 					pairs << "#{line}\n"
 				end
+				@pipe.close
 			end
 		rescue Timeout::Error
 			Process.kill 9, @pipe.pid
@@ -101,6 +102,7 @@ require 'timeout'
 				@pipe.read.split("\n").each do |line|
 					commandOutput << "#{line}\n"
 				end
+				@pipe.close
 			end
 		rescue Timeout::Error
 			Process.kill 9, @pipe.pid
