@@ -8,13 +8,12 @@ require 'timeout'
 		command = "/usr/sbin/serveradmin settings 2>/dev/null"
 		pairs = ""
 
-		open(command, 'w+') do |subprocess|
-			subprocess.write("\"#{resource[:name]}\"")
-			subprocess.close_write
-			subprocess.read.split("\n").each do |l|
+		IO.popen(command, 'r+') do |pipe|
+			pipe.puts("\"#{resource[:name]}\"")
+			pipe.close_write
+			pipe.read.split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
-			puts
 		end
 
 		debug("retrieve: Analyzing returned results: #{pairs}")
@@ -88,15 +87,14 @@ require 'timeout'
 		commandOutput = ""
 		command = "/usr/sbin/serveradmin settings"
 
-		open(command, 'w+') do |subprocess|
+		IO.popen(command, 'r+') do |pipe|
 			values.each do |val|
-				subprocess.write(val)
+				pipe.puts(val)
 			end
-			subprocess.close_write
-			subprocess.read.split("\n").each do |l|
+			pipe.close_write
+			pipe.read.split("\n").each do |l|
 				commandOutput << "#{l}\n"
 			end
-			puts
 		end
 
 		return commandOutput
