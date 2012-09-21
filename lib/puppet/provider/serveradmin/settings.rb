@@ -22,7 +22,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 				debug("retrieve: looks like and empty array")
 				@data = $1
 				return :empty
-				elseif    pairs.match(/\A.*(_empty_dictionary).*$/)
+				elseif pairs.match(/\A.*(_empty_dictionary).*$/)
 				debug("retrieve: found empty dictionary, looks like bogus setting")
 				@data = $1
 				return :outofsync

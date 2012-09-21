@@ -1,7 +1,6 @@
 Puppet::Type.newtype(:serveradmin) do
 	@doc = "Modify settings of the first element matching the Path expression in OS X server config."
 
-
 	newparam(:name) do
 		desc <<-EOS
 			The key shown in the serveradmin cli.
