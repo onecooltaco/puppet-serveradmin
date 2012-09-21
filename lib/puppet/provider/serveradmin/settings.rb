@@ -11,7 +11,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		pairs = ""
 		begin
 			debug("executing: #{cmds}")
-			execute(cmds).split("\n").each do |l|
+			execpipe(cmds).split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
@@ -97,8 +97,8 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		commandOutput = ""
 		begin
 			debug("executing: #{cmds}")
-			execute(cmds).split("\n").each do |l|
-				pairs << "#{l}\n"
+			execpipe(cmds).split("\n").each do |l|
+				commandOutput << "#{l}\n"
 			end
 			tmp.close
 		rescue Puppet::ExecutionFailure
