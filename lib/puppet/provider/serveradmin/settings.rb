@@ -8,7 +8,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds = []
 		cmds << :serveradmin
 		cmds << "settings"
-		cmds << "'#{resource[:name]}'"
+		cmds << "\"#{resource[:name]}\""
 		pairs = ""
 		begin
 			execute(cmds.join(' ')).split("\n").each do |l|
@@ -93,7 +93,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 			tmp.puts val
 		end
 		cmds << "<"
-		cmds << "'#{tmp.path}'"
+		cmds << "\"#{tmp.path}\""
 		commandOutput = ""
 		begin
 			execute(cmds.join(' ')).split("\n").each do |l|
