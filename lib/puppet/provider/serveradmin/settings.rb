@@ -1,5 +1,5 @@
+require 'tempfile'
 Puppet::Type.type(:serveradmin).provide(:settings) do
-require 'timeout'
     @doc = "apply serveradmin settings for os x server"
 	defaultfor :operatingsystem => :darwin
 	commands :settings => "/usr/sbin/serveradmin settings"
@@ -46,36 +46,36 @@ require 'timeout'
 	end
 
 	def delete
-		@lines = ""
+		lines = Array.new
 		begin
-			@lines << "#{resource[:name]} = delete"
-			set_value(@lines)
+			lines << "#{resource[:name]} = delete"
+			set_value(lines)
 			ensure
-			@lines = nil
+			lines = nil
 			@data = nil
 		end
 	end
 
 	def write
-		@lines = Array.new
+		lines = Array.new
 		begin
 			case resource[:settings]
 			when Hash
 				resource[:settings].rehash
 				resource[:settings].sort_by { |k, v| k.scan(/[0-9]+|[^0-9]+/).map {|s| s[/[^0-9]/] ? s : s.to_i} }.each do |k,v|
-					@lines << "#{resource[:name]}:#{k} = #{v}"
+					lines << "#{resource[:name]}:#{k} = #{v}"
 				end
 			when String
-				@lines << "#{resource[:name]} = #{resource[:settings]}"
+				lines << "#{resource[:name]} = #{resource[:settings]}"
 			else
 				puts "Wrong class"
 			end
 			if @data == "_empty_array"
-				@lines.unshift("#{resource[:name]} = create")
+				lines.unshift("#{resource[:name]} = create")
 			end
-			set_value(@lines)
+			set_value(lines)
 			ensure
-			@lines = nil
+			lines = nil
 			@data = nil
 		end
 	end
@@ -83,18 +83,22 @@ require 'timeout'
 	private
 
 	def set_value( values )
+		cmds = []
+		cmds << :settings
+		tmp = Tempfile.new(resource[:name])
+		values.each do |val|
+			tmp.puts val
+		end
+		cmds << "< #{tmp}"
 		commandOutput = ""
-		command = "/usr/sbin/serveradmin settings"
-
-# 		IO.popen(command, 'r+') do |pipe|
-# 			values.each do |val|
-# 				pipe.puts(val)
-# 			end
-# 			pipe.close_write
-# 			pipe.read.split("\n").each do |l|
-# 				commandOutput << "#{l}\n"
-# 			end
-# 		end
+		begin
+			execute(cmds).split("\n").each do |l|
+				pairs << "#{l}\n"
+			end
+			tmp.close
+		rescue Puppet::ExecutionFailure
+			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
+		end
 
 		return commandOutput
 	end
