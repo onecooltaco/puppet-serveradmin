@@ -99,11 +99,10 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 			execute(cmds.join(' ')).split("\n").each do |l|
 				commandOutput << "#{l}\n"
 			end
-			tmp.close
 		rescue Puppet::ExecutionFailure
 			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
 		end
-
+		tmp.close
 		return commandOutput
 	end
 
