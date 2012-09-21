@@ -2,12 +2,11 @@ require 'tempfile'
 Puppet::Type.type(:serveradmin).provide(:settings) do
     @doc = "apply serveradmin settings for os x server"
 	defaultfor :operatingsystem => :darwin
-	commands :serveradmin => "/usr/sbin/serveradmin"
+	commands :serveradmin => "/usr/sbin/serveradmin settings"
 
 	def check
 		cmds = []
 		cmds << :serveradmin
-		cmds << "settings"
 		cmds << "'#{resource[:name]}'"
 		pairs = ""
 		begin
@@ -87,7 +86,6 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	def set_value( values )
 		cmds = []
 		cmds << :serveradmin
-		cmds << "settings"
 		tmp = Tempfile.new(resource[:name])
 		values.each do |val|
 			tmp.puts val
