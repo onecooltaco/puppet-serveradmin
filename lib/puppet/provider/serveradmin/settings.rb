@@ -2,20 +2,19 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 require 'timeout'
     @doc = "apply serveradmin settings for os x server"
 	defaultfor :operatingsystem => :darwin
-	commands :serveradmin => "/usr/sbin/serveradmin"
+	commands :settings => "/usr/sbin/serveradmin settings"
 
 	def check
-		command = "/usr/sbin/serveradmin settings 2>/dev/null"
+		cmds = []
+		cmds << :settings
 		pairs = ""
-
-		IO.popen(command, 'r+') do |pipe|
-			pipe.puts(resource[:name])
-			pipe.close_write
-			pipe.read.split("\n").each do |l|
+		begin
+			execute(cmds).split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
+		rescue Puppet::ExecutionFailure
+			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
 		end
-
 		debug("retrieve: Analyzing returned results: #{pairs}")
 		debug("retrieve: found #{pairs.count('=')} lines of info")
 		if pairs.count('=') < 2
@@ -87,15 +86,15 @@ require 'timeout'
 		commandOutput = ""
 		command = "/usr/sbin/serveradmin settings"
 
-		IO.popen(command, 'r+') do |pipe|
-			values.each do |val|
-				pipe.puts(val)
-			end
-			pipe.close_write
-			pipe.read.split("\n").each do |l|
-				commandOutput << "#{l}\n"
-			end
-		end
+# 		IO.popen(command, 'r+') do |pipe|
+# 			values.each do |val|
+# 				pipe.puts(val)
+# 			end
+# 			pipe.close_write
+# 			pipe.read.split("\n").each do |l|
+# 				commandOutput << "#{l}\n"
+# 			end
+# 		end
 
 		return commandOutput
 	end
