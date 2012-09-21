@@ -5,13 +5,10 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	commands :serveradmin => "/usr/sbin/serveradmin"
 
 	def check
-		cmds = []
-		cmds << :serveradmin
-		cmds << "settings"
-		cmds << "'#{resource[:name]}'"
 		pairs = ""
 		begin
-			execute(cmds.join(' ')).split("\n").each do |l|
+			x = %x[ #{:serveradmin} settings "#{resource[:name]}" ]
+			x.split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
