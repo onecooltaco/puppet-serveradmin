@@ -8,10 +8,9 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds = []
 		cmds << :serveradmin
 		cmds << "settings"
-		cmds << "settings"
-		pairs = "'#{resource[:name]}'"
+		cmds << "'#{resource[:name]}'"
+		pairs = ""
 		begin
-			debug("executing: #{cmds.join(' ')}")
 			execute(cmds.join(' ')).split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
@@ -97,7 +96,6 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds << "'#{tmp.path}'"
 		commandOutput = ""
 		begin
-			debug("executing: #{cmds.join(' ')}")
 			execute(cmds.join(' ')).split("\n").each do |l|
 				commandOutput << "#{l}\n"
 			end
