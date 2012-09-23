@@ -5,13 +5,10 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	commands :serveradmin => "/usr/sbin/serveradmin"
 
 	def check
-		cmds = []
-		cmds << :serveradmin
-		cmds << "settings"
-		cmds << "\"#{resource[:name]}\""
 		pairs = ""
 		begin
-			execute(cmds.join(' ')).split("\n").each do |l|
+			x = `#{:serveradmin} settings "#{resource[:name]}"`
+			x.split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
@@ -88,21 +85,22 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds = []
 		cmds << :serveradmin
 		cmds << "settings"
-		tmp = Tempfile.new(resource[:name])
-		values.each do |val|
-			tmp.puts val
-		end
+#		tmp = Tempfile.new(resource[:name])
+#		values.each do |val|
+#			tmp.puts val
+#		end
 		cmds << "<"
 		cmds << "\"#{tmp.path}\""
 		commandOutput = ""
 		begin
-			execute(cmds.join(' ')).split("\n").each do |l|
-				commandOutput << "#{l}\n"
-			end
+#			execute(cmds.join(' ')).split("\n").each do |l|
+#				commandOutput << "#{l}\n"
+#			end
+		commandOutput = "test"
 		rescue Puppet::ExecutionFailure
 			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
 		end
-		tmp.close
+#		tmp.close
 		return commandOutput
 	end
 
