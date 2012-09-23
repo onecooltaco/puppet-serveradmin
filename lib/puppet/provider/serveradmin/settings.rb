@@ -7,7 +7,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	def check
 		pairs = ""
 		begin
-			x = %x[ #{:serveradmin} settings "#{resource[:name]}" ]
+			x = `#{:serveradmin} settings "#{resource[:name]}"`
 			x.split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
