@@ -7,8 +7,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	def check
 		pairs = ""
 		begin
-			x = `#{:serveradmin} settings "#{resource[:name]}"`
-			x.split("\n").each do |l|
+			execute("#{:serveradmin} settings \"#{resource[:name]}\"").split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
