@@ -1,14 +1,17 @@
-require 'tempfile'
 Puppet::Type.type(:serveradmin).provide(:settings) do
+	require 'tempfile'
     @doc = "apply serveradmin settings for os x server"
 	defaultfor :operatingsystem => :darwin
 	commands :serveradmin => "/usr/sbin/serveradmin"
 
 	def check
+		cmds = []
+		cmds << :serveradmin
+		cmds << "settings"
+		cmds << "\"#{resource[:name]}\""
 		pairs = ""
 		begin
-			x = %x[ #{:serveradmin} settings "#{resource[:name]}" ]
-			x.split("\n").each do |l|
+			execute(cmds.join(' ')).split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
@@ -22,7 +25,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 				debug("retrieve: looks like and empty array")
 				@data = $1
 				return :empty
-				elseif    pairs.match(/\A.*(_empty_dictionary).*$/)
+				elseif pairs.match(/\A.*(_empty_dictionary).*$/)
 				debug("retrieve: found empty dictionary, looks like bogus setting")
 				@data = $1
 				return :outofsync
@@ -90,17 +93,16 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 			tmp.puts val
 		end
 		cmds << "<"
-		cmds << "'#{tmp.path}'"
+		cmds << "\"#{tmp.path}\""
 		commandOutput = ""
 		begin
 			execute(cmds.join(' ')).split("\n").each do |l|
 				commandOutput << "#{l}\n"
 			end
-			tmp.close
 		rescue Puppet::ExecutionFailure
 			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
 		end
-
+		tmp.close
 		return commandOutput
 	end
 
