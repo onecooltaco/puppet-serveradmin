@@ -103,11 +103,9 @@ define serveradmin::sharing::group (
 	file {
 	$path:
 		path => $path,
-		source => "puppet:///modules/common/empty",
 		ensure => directory,
 		recurselimit => 1,
 		recurse => true,
-		replace => false,
 		mode => $mode,
 		owner => $owner,
 		group => $group,
@@ -158,10 +156,7 @@ define serveradmin::sharing::class (
 		file {
 		$path:
 			path => $path,
-			source => "puppet:///modules/common/empty",
 			ensure => directory,
-			recurse => false,
-			replace => false,
 			mode => 0750,
 			owner => $owner,
 			group => $group,
