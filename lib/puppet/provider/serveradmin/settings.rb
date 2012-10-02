@@ -7,7 +7,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	def check
 		pairs = ""
 		begin
-			execute("#{:serveradmin} settings \"#{resource[:name]}\"").split("\n").each do |l|
+			execute("#{:serveradmin} settings '#{resource[:name]}'").split("\n").each do |l|
 				pairs << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
@@ -69,6 +69,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 				puts "Wrong class"
 			end
 			if @data == "_empty_array"
+				debug("empty array: needs #{resource[:name]} = create")
 				lines.unshift("#{resource[:name]} = create")
 			end
 			set_value(lines)
@@ -89,8 +90,10 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 			tmp.puts val
 		end
 		cmds << "<"
-		cmds << "\"#{tmp.path}\""
+		cmds << "'#{tmp.path}'"
 		commandOutput = ""
+		lines = tmp.gets
+		debug("tmp file contents: #{lines}")
 		begin
 			execute(cmds.join(' ')).split("\n").each do |l|
 				commandOutput << "#{l}\n"
@@ -98,6 +101,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		rescue Puppet::ExecutionFailure
 			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
 		end
+
 		tmp.close
 		return commandOutput
 	end
