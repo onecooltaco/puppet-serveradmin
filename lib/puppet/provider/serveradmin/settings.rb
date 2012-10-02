@@ -92,7 +92,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds << "<"
 		cmds << "'#{tmp.path}'"
 		commandOutput = ""
-		lines = tmp.gets
+		lines = tmp.each {|line| print line }
 		debug("tmp file contents: #{lines}")
 		begin
 			execute(cmds.join(' ')).split("\n").each do |l|
