@@ -46,11 +46,11 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	def delete
 		lines = Array.new
 		begin
-			lines << "#{resource[:name]} = delete"
-			set_value(lines)
-			ensure
-			lines = nil
-			@data = nil
+			execute("#{:serveradmin} settings '#{resource[:name]}' = delete").split("\n").each do |l|
+				pairs << "#{l}\n"
+			end
+		rescue Puppet::ExecutionFailure
+			raise Puppet::Error.new("Unable to delete serveradmin: #{resource[:name]}")
 		end
 	end
 
@@ -94,12 +94,11 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds << "'#{tmp.path}'"
 		commandOutput = ""
 		begin
-			x = execute(cmds.join(' '))
-			x.split("\n").each do |l|
+			execute(cmds.join(' ')).split("\n").each do |l|
 				commandOutput << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
-			raise Puppet::Error.new("Unable to modify serveradmin service: #{resource[:name]}")
+			raise Puppet::Error.new("Unable to modify serveradmin setting: #{resource[:name]}")
 		end
 
 		return commandOutput
