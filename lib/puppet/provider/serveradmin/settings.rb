@@ -85,7 +85,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds = []
 		cmds << :serveradmin
 		cmds << "settings"
-		tmp = Tempfile.new('serveradmin')
+		tmp = Tempfile.new('pserveradmin')
 		values.each do |val|
 			tmp.puts val
 		end
