@@ -87,8 +87,9 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		cmds << "settings"
 		tmp = Tempfile.new('pserveradmin')
 		values.each do |val|
-			tmp.puts val
+			tmp << "val\n"
 		end
+		tmp.close
 		cmds << "<"
 		cmds << "'#{tmp.path}'"
 		commandOutput = ""
@@ -101,7 +102,6 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 			raise Puppet::Error.new("Unable to modify serveradmin service: #{resource[:name]}")
 		end
 
-		tmp.close
 		return commandOutput
 	end
 
