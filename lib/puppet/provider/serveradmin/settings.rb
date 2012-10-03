@@ -46,9 +46,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	def delete
 		lines = Array.new
 		begin
-			execute("#{:serveradmin} settings '#{resource[:name]}' = delete").split("\n").each do |l|
-				pairs << "#{l}\n"
-			end
+			execute("#{:serveradmin} settings '#{resource[:name]}' = delete")
 		rescue Puppet::ExecutionFailure
 			raise Puppet::Error.new("Unable to delete serveradmin: #{resource[:name]}")
 		end
