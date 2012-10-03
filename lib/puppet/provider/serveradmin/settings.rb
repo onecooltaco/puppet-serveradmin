@@ -80,7 +80,7 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	private
 
 	def set_value( values )
-		cmd = "echo -n #{values} | #{:serveradmin} settings"
+		cmd = "echo #{values} | #{:serveradmin} settings"
 		commandOutput = ""
 		begin
 			execute(cmd).split("\n").each do |l|
