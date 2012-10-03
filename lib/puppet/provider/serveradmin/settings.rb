@@ -80,19 +80,10 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	private
 
 	def set_value( values )
-		cmds = []
-		cmds << :serveradmin
-		cmds << "settings"
-		tmp = Tempfile.new('pserveradmin')
-		values.each do |val|
-			tmp << "val\n"
-		end
-		tmp.close
-		cmds << "<"
-		cmds << "'#{tmp.path}'"
+		cmd = "echo -n #{values} | #{:serveradmin} settings"
 		commandOutput = ""
 		begin
-			execute(cmds.join(' ')).split("\n").each do |l|
+			execute(cmd).split("\n").each do |l|
 				commandOutput << "#{l}\n"
 			end
 		rescue Puppet::ExecutionFailure
