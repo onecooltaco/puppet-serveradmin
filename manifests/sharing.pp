@@ -34,7 +34,7 @@
 # Copyright 2012 Jeremy Leggat, unless otherwise noted.
 #
 define serveradmin::sharing (
-    $ensure = 'insync',
+    $ensure = 'present',
     $path,
     $afpIsGuestAccessEnabled = "no",
     $smbDirectoryMask = "755",

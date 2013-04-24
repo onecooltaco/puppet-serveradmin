@@ -4,46 +4,31 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 	defaultfor :operatingsystem => :darwin
 	commands :serveradmin => "/usr/sbin/serveradmin"
 
-	def check
-		pairs = ""
+	# compare property values with retrieved values.
+	def exists?
+		@returned = get_values
 		begin
-			execute("#{:serveradmin} settings '#{resource[:name]}'").split("\n").each do |l|
-				pairs << "#{l}\n"
+			case resource[:settings]
+			when Hash
+				debug("retrieve: command returned multiple lines, will split into hash")
+				data = Hash[*@returned.scan(/^#{Regexp.escape(resource[:name])}:(.*) = (.*)$/).flatten]
+				debug("retrieve: Analyzing:\n #{data.inspect}\n and\n #{resource[:settings].inspect}")
+				resource[:settings].select{|k,v| return false if data[k]!=v}
+				return true
+			when String
+				debug("retrieve: scanning returned line: ...")
+				debug("retrieve: results: #{@returned.scan(/^#{Regexp.escape(resource[:name])} = (.*)$/)}")
+				data = @returned.scan(/^#{Regexp.escape(resource[:name])} = (.*)$/)
+				return true if data.to_s == resource[:settings]
 			end
-		rescue Puppet::ExecutionFailure
-			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
+		rescue
+			return false
 		end
-		debug("retrieve: Analyzing returned results: #{pairs}")
-		debug("retrieve: found #{pairs.count('=')} lines of info")
-		if pairs.count('=') < 2
-			debug("retrieve: checking single line for empty array")
-			if pairs.match(/\A.*(_empty_array).*$/)
-				debug("retrieve: looks like and empty array")
-				@data = $1
-				return :empty
-				elseif pairs.match(/\A.*(_empty_dictionary).*$/)
-				debug("retrieve: found empty dictionary, looks like bogus setting")
-				@data = $1
-				return :outofsync
-			end
-		end
-		case resource[:settings]
-		when Hash
-			debug("retrieve: command returned multiple lines, will split into hash")
-			@data = Hash[*pairs.scan(/^#{Regexp.escape(resource[:name])}:(.*) = (.*)$/).flatten]
-			debug("retrieve: Analyzing:\n #{@data.inspect}\n and\n #{resource[:settings].inspect}")
-			resource[:settings].select{|k,v| return :outofsync if @data[k]!=v}
-			return :insync
-		when String
-			debug("retrieve: scanning returned line: ...")
-			debug("retrieve: results: #{pairs.scan(/^#{Regexp.escape(resource[:name])} = (.*)$/)}")
-			@data = pairs.scan(/^#{Regexp.escape(resource[:name])} = (.*)$/)
-			return :insync if @data.to_s == resource[:settings]
-		end
-		return :outofsync
+		return false
 	end
 
-	def delete
+	# remove array entries, only applies to arrays.
+	def destroy
 		lines = Array.new
 		begin
 			execute("#{:serveradmin} settings '#{resource[:name]}' = delete")
@@ -52,7 +37,8 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 		end
 	end
 
-	def write
+	#Apply value in serveradmin, creating entry if needed.
+	def create
 		lines = Array.new
 		begin
 			case resource[:settings]
@@ -61,14 +47,14 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 				resource[:settings].sort_by { |k, v| k.scan(/[0-9]+|[^0-9]+/).map {|s| s[/[^0-9]/] ? s : s.to_i} }.each do |k,v|
 					lines << "#{resource[:name]}:#{k} = #{v}"
 				end
+				if @returned.nil?
+					debug("empty array: needs #{resource[:name]} = create")
+					lines.unshift("#{resource[:name]} = create")
+				end
 			when String
 				lines << "#{resource[:name]} = #{resource[:settings]}"
 			else
 				puts "Wrong class"
-			end
-			if @data == "_empty_array"
-				debug("empty array: needs #{resource[:name]} = create")
-				lines.unshift("#{resource[:name]} = create")
 			end
 			set_value(lines)
 			ensure
@@ -79,8 +65,28 @@ Puppet::Type.type(:serveradmin).provide(:settings) do
 
 	private
 
+	# read the settings from the serveradmin command line tool.
+	def get_values
+		pairs = ""
+		begin
+			execute("#{:serveradmin} settings '#{resource[:name]}'").split("\n").each do |l|
+				pairs << "#{l}\n"
+			end
+		rescue Puppet::ExecutionFailure
+			raise Puppet::Error.new("Unable to read serveradmin service: #{resource[:name]}")
+		end
+		debug("retrieve: Analyzing returned results: #{pairs}")
+		debug("retrieve: found #{pairs.count('=')} lines of info")
+		if pairs.count('=') < 2 && pairs.match(/\A.*(_empty_array).*$/)
+			debug("retrieve: looks like and empty array or bogus setting")
+			pairs = nil
+		end
+		return pairs
+	end
+
+	# Set the values, passing to serveradmin settings
 	def set_value( values )
-		cmd = "echo #{values} | #{:serveradmin} settings"
+		cmd = "echo '#{values.join('\n')}' | #{:serveradmin} settings"
 		commandOutput = ""
 		begin
 			execute(cmd).split("\n").each do |l|
